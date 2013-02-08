@@ -1,6 +1,6 @@
 # main.py
 # -------
-# YOUR NAME HERE
+# Lexi Ross & Ye Zhao
 
 from dtree import *
 import sys
@@ -64,6 +64,14 @@ def validateInput(args):
       boostRounds = int(args_map['-b'])
     return [noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds]
 
+def score(classified, instances):
+  point = 0
+  for i in range(0, len(classified)): 
+    if classified[i] == instances[i]:
+      point += 1
+  return point
+
+
 def main():
     arguments = validateInput(sys.argv)
     noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds = arguments
@@ -92,6 +100,23 @@ def main():
     # WRITE CODE FOR YOUR EXPERIMENTS HERE
     # ====================================
 
+    # ============================
+    # 2a) 10-fold cross validation
+    # ============================
+    K = 10 # K-fold cross validation
+    performance = 0.
+    for i in range(0,K):
+      training_dataset = DataSet(data[i*10:90+i*10],values=dataset.values)
+      test_dataset = DataSet(data[90+i*10:100+i*10],values=dataset.values)
+      dt = learn(training_dataset)
+      score = 0.
+      for example in test_dataset.examples:
+        classified = classify(dt, example)
+        if classified == example.attrs[-1]:
+          score += 1.
+      accuracy = score / len(test_dataset.examples)
+      performance += accuracy / K
+    print performance
 main()
 
 
