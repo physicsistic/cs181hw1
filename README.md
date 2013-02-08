@@ -1,2 +1,3 @@
-cs181hw1
-========
+CS181 HW1 - Decision Tree
+=========================
+Copyright of Lexi and Ye
