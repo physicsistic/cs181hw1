@@ -100,9 +100,9 @@ def main():
     # WRITE CODE FOR YOUR EXPERIMENTS HERE
     # ====================================
 
-    # ===============================
+    # ============================
     # 2a) 10-fold cross validation
-    # ===============================
+    # ============================
     K = 10 # K-fold cross validation
     performance = 0.
     for i in range(0,K):
