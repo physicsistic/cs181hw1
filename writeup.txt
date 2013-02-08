@@ -1,0 +1,8 @@
+Problem 2a 
+==========
+performace for data.csv = 0.87
+performance for noisy.csv = 0.78
+
+Problem 2b
+==========
+In progress

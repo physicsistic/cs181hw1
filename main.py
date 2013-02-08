@@ -116,7 +116,7 @@ def main():
           score += 1.
       accuracy = score / len(test_dataset.examples)
       performance += accuracy / K
-
+    print performance
 main()
 
 
