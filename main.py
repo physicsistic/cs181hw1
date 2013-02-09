@@ -18,12 +18,63 @@ class Globals:
 def classify(decisionTree, example):
     return decisionTree.predict(example)
 
+# 3. AdaBoost
+# implements majority voting for a weighted set of predictions
+def classify_weighted_set(decisionTrees, example):
+    weights = {}
+    for dt in decisionTrees:
+        classification = dt.predict(example)
+        if classification in weights:
+            weights[classification] = dt.weight
+        else:
+            weights[classification] += dt.weight
+    return max(enumerate(weights))[1]
+
+
 ##Learn
 #-------
 def learn(dataset):
     learner = DecisionTreeLearner()
     learner.train( dataset)
     return learner.dt
+
+def weak_learn(dataset, max_depth):
+    learner = DecisionTreeLearner()
+    learner.limited_train(dataset, max_depth)
+    return learner.dt
+
+##AdaBoost
+#---------
+
+# AdaBoost wrapper. Uses the weak_learn function, which
+# limits tree depth to max_depth.
+def ada_boost(dataset, rounds, max_depth):
+    hypotheses = []
+    default_weight = 1/len(examples)
+    for e in dataset.examples:
+       e.weight = default_weight
+
+    for i in range(0, rounds):
+        dt = weak_learn(dataset, max_depth)
+        error = 0
+        weight_sum = 0
+        # build error from incorrect examples
+        for e in dataset.examples:
+            if classify(dt, e) != e.attrs[-1]:
+                error += e.weight
+        # decrease weight of correct examples
+        for e in dataset.examples:
+            if classify(dt, e) == e.attrs[-1]:
+                e.weight *= error / (1 - error)
+            weight_sum += e.weight
+        # normalize weights
+        for e in dataset.examples:
+            e.weight /= weight_sum
+        # check this math later
+        dt.weight = math.log(1 - error) / error
+        hypotheses.append(dt)
+
+    return hypotheses
 
 # main
 # ----
@@ -66,7 +117,7 @@ def validateInput(args):
 
 def score(classified, instances):
   point = 0
-  for i in range(0, len(classified)): 
+  for i in range(0, len(classified)):
     if classified[i] == instances[i]:
       point += 1
   return point
@@ -78,7 +129,7 @@ def main():
     print noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds
 
     # Read in the data file
-    
+
     if noisyFlag:
         f = open("noisy.csv")
     else:
@@ -86,10 +137,10 @@ def main():
 
     data = parse_csv(f.read(), " ")
     dataset = DataSet(data)
-    
+
     # Copy the dataset so we have two copies of it
     examples = dataset.examples[:]
- 
+
     dataset.examples.extend(examples)
     dataset.max_depth = maxDepth
     if boostRounds != -1:
@@ -120,4 +171,4 @@ def main():
 main()
 
 
-    
+

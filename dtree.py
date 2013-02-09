@@ -18,7 +18,7 @@ class DataSet:
 
     d.examples    A list of examples.  Each one is an instance of class Example.
     d.attrs       A list of integers to index into an example, so example[attr]
-                  gives a value. Normally the same as range(len(d.examples)). 
+                  gives a value. Normally the same as range(len(d.examples)).
     d.attrnames   Optional list of mnemonic names for corresponding attrs.
     d.target      The attribute that a learning algorithm will try to predict.
                   By default the final attribute.
@@ -29,7 +29,7 @@ class DataSet:
                   If not None, an erroneous value raises ValueError.
     d.name        Name of the data set (for output display only).
     d.source      URL or other source where the data came from.
-    
+
     Configuration Parameters
     d.max_depth      The max_depth for decision trees (optional; default=-1)
     d.use_boosting   Whether or not boosting should be used to train.
@@ -60,7 +60,7 @@ class DataSet:
         self.attrs = attrs
         map(self.check_example, self.examples)
         # Initialize .attrnames from string, list, or by default
-        if isinstance(attrnames, str): 
+        if isinstance(attrnames, str):
             self.attrnames = attrnames.split()
         else:
             self.attrnames = attrnames or attrs
@@ -174,7 +174,7 @@ class MajorityLearner(Learner):
 #______________________________________________________________________________
 
 class NaiveBayesLearner(Learner):
-    
+
     def train(self, dataset):
         """Just count the target/attr/val occurences.
         Count how many times each value of each attribute occurs.
@@ -237,10 +237,10 @@ class NearestNeighborLearner(Learner):
         else:
             ## Maintain a sorted list of (distance, example) pairs.
             ## For very large k, a PriorityQueue would be better
-            best = [] 
+            best = []
             for e in examples:
                 d = self.distance(e, example)
-                if len(best) < k: 
+                if len(best) < k:
                     e.append((d, e))
                 elif d < best[-1][0]:
                     best[-1] = (d, e)
@@ -269,6 +269,8 @@ class DecisionTree:
           # Sets self.attr = attr, self.attrname = attrname or attr, etc.
           update(self, attr=attr, attrname=attrname or attr,
                  branches=branches or {})
+        # Part 3: weight for AdaBoost
+        self.weight = 1
 
     def predict(self, example):
         "Given an example, use the tree to classify the example."
@@ -302,7 +304,7 @@ class DecisionTree:
             self.attr, self.attrname, self.branches)
 
 Yes, No = True, False
-        
+
 #______________________________________________________________________________
 
 class DecisionTreeLearner(Learner):
@@ -314,6 +316,12 @@ class DecisionTreeLearner(Learner):
         self.dataset = dataset
         self.attrnames = dataset.attrnames
         self.dt = self.decision_tree_learning(dataset.examples, dataset.inputs)
+
+    # 3. AdaBoost
+    def limited_train(self, dataset):
+        self.dataset = dataset
+        self.attrnames = dataset.attrnames
+        self.dt = self.decision_tree_learning_weighted(dataset.examples, dataset.inputs, max_depth)
 
     def decision_tree_learning(self, examples, attrs, default=None):
         if len(examples) == 0:
@@ -332,9 +340,36 @@ class DecisionTreeLearner(Learner):
                 tree.add(v, subtree)
             return tree
 
+    # 3. AdaBoost
+    # Should majority_value_weighted be used in place of every call to majority_value,
+    # or just at a termination condition?
+    def decision_tree_learning_weighted(self, examples, attrs, max_depth, default=None):
+        if len(examples) == 0:
+            return DecisionTree(DecisionTree.LEAF, classification=default)
+        elif max_depth == 0:
+            return DecisionTree(DecisionTree.LEAF, classification=self.majority_value_weighted(examples))
+        elif self.all_same_class(examples):
+            return DecisionTree(DecisionTree.LEAF,
+                                classification=examples[0].attrs[self.dataset.target])
+        elif len(attrs) == 0:
+            return DecisionTree(DecisionTree.LEAF, classification=self.majority_value_weighted(examples))
+        else:
+            best = self.choose_attribute_weighted(attrs, examples)
+            tree = DecisionTree(DecisionTree.NODE, attr=best, attrname=self.attrnames[best])
+            for (v, examples_i) in self.split_by(best, examples):
+                subtree = self.decision_tree_learning_weighted(examples_i,
+                  removeall(best, attrs), max_depth - 1, self.majority_value_weighted(examples))
+                tree.add(v, subtree)
+            return tree
+
     def choose_attribute(self, attrs, examples):
         "Choose the attribute with the highest information gain."
         return argmax(attrs, lambda a: self.information_gain(a, examples))
+
+    # 3. AdaBoost
+    def choose_attribute_weighted(self, attrs, examples):
+        "Choose the attribute with the highest information gain, taking into account weights."
+        return argmax(attrs, lambda a: self.information_gain_weighted(a, examples))
 
     def all_same_class(self, examples):
         "Are all these examples in the same target class?"
@@ -351,14 +386,45 @@ class DecisionTreeLearner(Learner):
         return argmax(self.dataset.values[g],
                       lambda v: self.count(g, v, examples))
 
+    # 3. AdaBoost
+    def majority_value_weighted(self, examples):
+        """Return the most popular target value for this set of examples.
+        (If target is binary, this is the majority; otherwise plurality.)
+        Uses a weighted majority (taking example weights into account)."""
+        g = self.dataset.target
+        return argmax(self.dataset.values[g],
+                      lambda v: self.sum_weights(g, v, examples))
+
     def count(self, attr, val, examples):
         return count_if(lambda e: e.attrs[attr] == val, examples)
-    
+
     def information_gain(self, attr, examples):
         def I(examples):
             target = self.dataset.target
             return information_content([self.count(target, v, examples)
                                         for v in self.dataset.values[target]])
+        N = float(len(examples))
+        remainder = 0
+        for (v, examples_i) in self.split_by(attr, examples):
+            remainder += (len(examples_i) / N) * I(examples_i)
+        return I(examples) - remainder
+
+    # 3. AdaBoost
+    # Make this more elegant later?
+    def sum_weights(self, attr, val, examples):
+        sum = 0
+        for e in examples:
+            if e.attrs[attr] == val:
+                sum += e.weight
+        return sum
+
+    # 3. AdaBoost
+    def information_gain_weighted(self, attr, examples):
+        def I(examples):
+            target = self.dataset.target
+            weights = [sum_weights(target, v, examples) for v in self.dataset.values[target]]
+            return information_content_weighted([self.count(target, v, examples)
+                                        for v in self.dataset.values[target]], weights)
         N = float(len(examples))
         remainder = 0
         for (v, examples_i) in self.split_by(attr, examples):
@@ -371,7 +437,7 @@ class DecisionTreeLearner(Learner):
             examples = self.dataset.examples
         return [(v, [e for e in examples if e.attrs[attr] == v])
                 for v in self.dataset.values[attr]]
-    
+
 def information_content(values):
     "Number of bits to represent the probability distribution in values."
     # If the values do not sum to 1, normalize them to make them a Prob. Dist.
@@ -380,4 +446,13 @@ def information_content(values):
     if s != 1.0: values = [v/s for v in values]
     return sum([- v * log2(v) for v in values])
 
+# 3. AdaBoost
+def information_content_weighted(values, weights):
+    "Number of bits to represent the probability distribution in values."
+    # If the values do not sum to 1, normalize them to make them a Prob. Dist.
+    values = removeall(0, values)
+    s = float(sum(values))
+    if s != 1.0: values = [v/s for v in values]
+    # Include the sum of weights matching the given in each product
+    return sum([- v * log2(v) * w for v,w in zip(values, weights)])
 #_________________________________________________
