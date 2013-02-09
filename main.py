@@ -87,6 +87,23 @@ def cross_validate(data, dataset, K, N):
     performance += accuracy / K
   print performance
 
+def pruning(data, dataset, K, N, V):
+  performance = 0.
+  n = N / K
+  for i in range(K):
+    training_dataset = DataSet(data[i*n:(K+i-1)*n-V], values=dataset.values)
+    validation_dataset = DataSet(data[(K+i-1)*n-V:(K+i-1)*n], values=dataset.values)
+    test_dataset = DataSet(data[(K+i-1)*n:N+i*n], values=dataset.values)
+    dt = learn(training_dataset)
+    score = 0.
+    for example in test_dataset.examples:
+      classified = classify(dt, example)
+      if classified == example.attrs[-1]:
+        score += 1.
+    accuracy = score / len(test_dataset.examples)
+    performance += accuracy / K
+  print performance
+
 def main():
     arguments = validateInput(sys.argv)
     noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds = arguments
@@ -119,6 +136,7 @@ def main():
     # 2a) 10-fold cross validation
     # ============================
     cross_validate(data, dataset, 10, 100)
+    print learn(dataset).display
 
     # ====================
     # 2b) Pruning Function
