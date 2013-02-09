@@ -35,7 +35,7 @@ def classify_weighted_set(decisionTrees, example):
 #-------
 def learn(dataset):
     learner = DecisionTreeLearner()
-    learner.train( dataset)
+    learner.train(dataset)
     return learner.dt
 
 def weak_learn(dataset, max_depth):
@@ -122,6 +122,21 @@ def score(classified, instances):
       point += 1
   return point
 
+def cross_validate(data, dataset, K, N):
+  performance = 0.
+  n = N / K
+  for i in range(K):
+    training_dataset = DataSet(data[i*n:(K+i-1)*n],values=dataset.values)
+    test_dataset = DataSet(data[(K+i-1)*n:N+i*n],values=dataset.values)
+    dt = learn(training_dataset)
+    score = 0.
+    for example in test_dataset.examples:
+      classified = classify(dt, example)
+      if classified == example.attrs[-1]:
+        score += 1.
+    accuracy = score / len(test_dataset.examples)
+    performance += accuracy / K
+  print performance
 
 def main():
     arguments = validateInput(sys.argv)
@@ -154,20 +169,14 @@ def main():
     # ============================
     # 2a) 10-fold cross validation
     # ============================
-    K = 10 # K-fold cross validation
-    performance = 0.
-    for i in range(0,K):
-      training_dataset = DataSet(data[i*10:90+i*10],values=dataset.values)
-      test_dataset = DataSet(data[90+i*10:100+i*10],values=dataset.values)
-      dt = learn(training_dataset)
-      score = 0.
-      for example in test_dataset.examples:
-        classified = classify(dt, example)
-        if classified == example.attrs[-1]:
-          score += 1.
-      accuracy = score / len(test_dataset.examples)
-      performance += accuracy / K
-    print performance
+    cross_validate(data, dataset, 10, 100)
+
+    # ====================
+    # 2b) Pruning Function
+    # ====================
+
+
+    
 main()
 
 
