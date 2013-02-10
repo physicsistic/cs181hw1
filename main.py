@@ -128,10 +128,13 @@ def cross_validate(data, dataset, K, N):
   for i in range(K):
     training_dataset = DataSet(data[i*n:(K+i-1)*n],values=dataset.values)
     test_dataset = DataSet(data[(K+i-1)*n:N+i*n],values=dataset.values)
-    dt = learn(training_dataset)
+    if dataset.use_boosting:
+      hypotheses = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
+    else:
+      dt = learn(training_dataset)
     score = 0.
     for example in test_dataset.examples:
-      classified = classify(dt, example)
+      classified = classify_weighted_set(hypotheses, example) if dataset.use_boosting else classify(dt, example)
       if classified == example.attrs[-1]:
         score += 1.
     accuracy = score / len(test_dataset.examples)
@@ -192,6 +195,17 @@ def main():
     # ====================
     # 2b) Pruning Function
     # ====================
+
+
+    # ====================
+    # 3a) AdaBoost, varying depth of weak learner
+    # ====================
+
+    # Use command line args:
+    # -b 10 -d 1
+    # -b 10 -d 2
+    # -b 30 -d 1
+    # -b 30 -d 2
 
 
     
