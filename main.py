@@ -21,14 +21,17 @@ def classify(decisionTree, example):
 # 3. AdaBoost
 # implements majority voting for a weighted set of predictions
 def classify_weighted_set(decisionTrees, example):
-    weights = {}
+    weights = [0, 0]
+    print "\n\n"
     for dt in decisionTrees:
         classification = dt.predict(example)
-        if classification in weights:
-            weights[classification] = dt.weight
-        else:
-            weights[classification] += dt.weight
-    return max(enumerate(weights))[1]
+        # the rest of this is bad but yolo
+        weights[classification] += dt.weight
+    print weights
+    if weights[0] > weights[1]:
+        return 0
+    else:
+        return 1
 
 
 ##Learn
@@ -50,28 +53,40 @@ def weak_learn(dataset, max_depth):
 # limits tree depth to max_depth.
 def ada_boost(dataset, rounds, max_depth):
     hypotheses = []
-    default_weight = 1/len(examples)
+    default_weight = 1./len(dataset.examples)
     for e in dataset.examples:
        e.weight = default_weight
 
     for i in range(0, rounds):
         dt = weak_learn(dataset, max_depth)
-        error = 0
-        weight_sum = 0
+        error = 0.
+        weight_sum = 0.
         # build error from incorrect examples
         for e in dataset.examples:
             if classify(dt, e) != e.attrs[-1]:
                 error += e.weight
+
+        # calculate hypothesis weight
+        if error == 0:
+            dt.weight = sys.maxint
+            hypotheses.append(dt)
+            print "perfect tree"
+            return hypotheses
+        else:
+            dt.weight = 0.5 * math.log((1 - error) / error)
+
         # decrease weight of correct examples
         for e in dataset.examples:
             if classify(dt, e) == e.attrs[-1]:
-                e.weight *= error / (1 - error)
+                #textbook psuedocode: e.weight *= error / (1 - error)
+                e.weight *= math.exp(-1. * dt.weight)
+            else:
+                e.weight *= math.exp(dt.weight)
             weight_sum += e.weight
+
         # normalize weights
         for e in dataset.examples:
-            e.weight /= weight_sum
-        # check this math later
-        dt.weight = math.log(1 - error) / error
+            e.weight = 0 if weight_sum == 0 else e.weight/weight_sum
         hypotheses.append(dt)
 
     return hypotheses
@@ -189,8 +204,8 @@ def main():
     # ============================
     # 2a) 10-fold cross validation
     # ============================
-    cross_validate(data, dataset, 10, 100)
-    print learn(dataset).display
+    #cross_validate(data, dataset, 10, 100)
+    #print learn(dataset).display
 
     # ====================
     # 2b) Pruning Function
@@ -200,6 +215,10 @@ def main():
     # ====================
     # 3a) AdaBoost, varying depth of weak learner
     # ====================
+
+    if dataset.use_boosting:
+        print "AdaBoost:"
+    cross_validate(data, dataset, 10, 100)
 
     # Use command line args:
     # -b 10 -d 1
