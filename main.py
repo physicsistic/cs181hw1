@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 class Globals:
     noisyFlag = False
     pruneFlag = False
+    boostingFlag = False
     valSetSize = 0
     dataset = None
     autoPruneFlag = False
@@ -18,6 +19,9 @@ class Globals:
 #---------
 
 def classify(decisionTree, example):
+  if Globals.boostingFlag:
+    return classify_weighted_set(decisionTree, example)
+  else:
     return decisionTree.predict(example)
 
 # 3. AdaBoost
@@ -148,7 +152,6 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
   # n_vset = size of validation set to use
 
   N = len(dataset.examples) / 2 # length of dataset
-  print N
   L = int(N / K) # length of 1 fold
 
   test_accuracies, train_accuracies = [], []
@@ -162,6 +165,12 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
       train = training_examples[n_vset:]
       dataset.examples = train
       dt = prune(learn(dataset), train, validate)
+    elif dataset.use_boosting:
+      print dataset.use_boosting
+      dataset.examples = training_examples
+      print len(dataset.examples)
+      dt = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
+      print dt
     else:
       dataset.examples = training_examples
       dt = learn(dataset)
@@ -250,6 +259,7 @@ def main():
     if boostRounds != -1:
       dataset.use_boosting = True
       dataset.num_rounds = boostRounds
+      Globals.boostingFlag = True
     
     if Globals.autoPruneFlag:
       train_accuracies, test_accuracies = [], []
@@ -267,23 +277,9 @@ def main():
       plt.show()
     else:
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
-      print "Pruning with validation size %d:" % Globals.valSetSize
-
       print "Train accuracy: %f" % train
       print "Test accuracy: %f" % test
 
-
-
-    # Use command line args:
-    # -b 10 -d 1
-    # -b 10 -d 2
-    # -b 30 -d 1
-    # -b 30 -d 2
-
-    print "Pruning with validation size %d:" % Globals.valSetSize
-
-    print "Train accuracy: %f" % train
-    print "Test accuracy: %f" % test
 
     
 main()
