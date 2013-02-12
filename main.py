@@ -123,20 +123,31 @@ def score(classified, instances):
   return point
 
 def cross_validate(data, dataset, K, N):
-  performance = 0.
+  test_performance = 0.
+  training_performance = 0.
   n = N / K
   for i in range(K):
     training_dataset = DataSet(data[i*n:(K+i-1)*n],values=dataset.values)
     test_dataset = DataSet(data[(K+i-1)*n:N+i*n],values=dataset.values)
     dt = learn(training_dataset)
-    score = 0.
+    # calculating test dataset accuracy
+    test_score = 0.
     for example in test_dataset.examples:
       classified = classify(dt, example)
       if classified == example.attrs[-1]:
-        score += 1.
-    accuracy = score / len(test_dataset.examples)
-    performance += accuracy / K
-  print performance
+        test_score += 1.
+    test_accuracy = test_score / len(test_dataset.examples)
+    test_performance += test_accuracy / K
+    # calculating training dataset accuracy
+    training_score = 0.
+    for example in training_dataset.examples:
+      classified = classify(dt, example)
+      if classified == example.attrs[-1]:
+        training_score += 1.
+    training_accuracy = training_score / len(training_dataset.examples)
+    training_performance += training_accuracy / K
+  print "Test performance is %f" % test_performance
+  print "training performance is %f" % training_performance
 
 def pruning(data, dataset, K, N, V):
   performance = 0.
@@ -187,7 +198,6 @@ def main():
     # 2a) 10-fold cross validation
     # ============================
     cross_validate(data, dataset, 10, 100)
-    print learn(dataset).display
 
     # ====================
     # 2b) Pruning Function
