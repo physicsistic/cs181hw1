@@ -69,7 +69,7 @@ def ada_boost(dataset, rounds, max_depth):
         weight_sum = 0.
         # build error from incorrect examples
         for e in dataset.examples:
-            if classify(dt, e) != e.attrs[-1]:
+            if dt.predict(e) != e.attrs[-1]:
                 error += e.weight
 
         # calculate hypothesis weight
@@ -83,7 +83,7 @@ def ada_boost(dataset, rounds, max_depth):
 
         # decrease weight of correct examples
         for e in dataset.examples:
-            if classify(dt, e) == e.attrs[-1]:
+            if dt.predict(e) == e.attrs[-1]:
                 #textbook psuedocode: e.weight *= error / (1 - error)
                 e.weight *= math.exp(-1. * dt.weight)
             else:
