@@ -28,12 +28,10 @@ def classify(decisionTree, example):
 # implements majority voting for a weighted set of predictions
 def classify_weighted_set(decisionTrees, example):
     weights = [0, 0]
-    print "\n\n"
     for dt in decisionTrees:
         classification = dt.predict(example)
         # the rest of this is bad but yolo
         weights[classification] += dt.weight
-    print weights
     if weights[0] > weights[1]:
         return 0
     else:
@@ -76,7 +74,6 @@ def ada_boost(dataset, rounds, max_depth):
         if error == 0:
             dt.weight = sys.maxint
             hypotheses.append(dt)
-            print "perfect tree"
             return hypotheses
         else:
             dt.weight = 0.5 * math.log((1 - error) / error)
@@ -166,11 +163,8 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
       dataset.examples = train
       dt = prune(learn(dataset), train, validate)
     elif dataset.use_boosting:
-      print dataset.use_boosting
       dataset.examples = training_examples
-      print len(dataset.examples)
       dt = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
-      print dt
     else:
       dataset.examples = training_examples
       dt = learn(dataset)
@@ -279,6 +273,16 @@ def main():
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
       print "Train accuracy: %f" % train
       print "Test accuracy: %f" % test
+
+    # 3B: Graph code
+    import matplotlib.pyplot as plt
+    from pylab import *
+
+    plt.clf()
+
+    xs = range(1, 31)
+    ys_nonnoisy = []
+    # I'm sleepy, gonna finish this tomorrow <3
 
 
     

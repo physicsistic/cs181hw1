@@ -10,3 +10,17 @@ In progress
 
 Problem 3a
 ==========
+Non-noisy data:
+10 rounds, max_depth = 1: 0.89
+30 rounds, max_depth = 1: 0.91
+10 rounds, max_depth = 2: 0.90
+30 rounds, max_depth = 2: 0.90
+Noisy data:
+10 rounds, max_depth = 1: 0.88
+30 rounds, max_depth = 1: 0.87
+10 rounds, max_depth = 2: 0.78
+30 rounds, max_depth = 2: 0.78
+
+Problem 3b
+==========
+
