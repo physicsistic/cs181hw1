@@ -318,7 +318,7 @@ class DecisionTreeLearner(Learner):
         self.dt = self.decision_tree_learning(dataset.examples, dataset.inputs)
 
     # 3. AdaBoost
-    def limited_train(self, dataset):
+    def limited_train(self, dataset, max_depth):
         self.dataset = dataset
         self.attrnames = dataset.attrnames
         self.dt = self.decision_tree_learning_weighted(dataset.examples, dataset.inputs, max_depth)
@@ -422,7 +422,10 @@ class DecisionTreeLearner(Learner):
     def information_gain_weighted(self, attr, examples):
         def I(examples):
             target = self.dataset.target
-            weights = [sum_weights(target, v, examples) for v in self.dataset.values[target]]
+            weights = []
+            #for v in self.dataset.values[target]:
+            #    weights.append(sum_weights(target, v, examples))
+            weights = [self.sum_weights(target, v, examples) for v in self.dataset.values[target]]
             return information_content_weighted([self.count(target, v, examples)
                                         for v in self.dataset.values[target]], weights)
         N = float(len(examples))

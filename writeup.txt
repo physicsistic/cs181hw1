@@ -6,3 +6,7 @@ performance for noisy.csv = 0.78
 Problem 2b
 ==========
 In progress
+
+
+Problem 3a
+==========
