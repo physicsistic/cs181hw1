@@ -4,7 +4,11 @@
 
 from dtree import *
 import sys
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+from pylab import *
 
 class Globals:
     noisyFlag = False
@@ -254,7 +258,7 @@ def main():
       dataset.use_boosting = True
       dataset.num_rounds = boostRounds
       Globals.boostingFlag = True
-    
+
     if Globals.autoPruneFlag:
       train_accuracies, test_accuracies = [], []
       xs = range(1,81)
@@ -273,19 +277,33 @@ def main():
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
       print "Train accuracy: %f" % train
       print "Test accuracy: %f" % test
+      #f = open('noisy_boosting_results.txt', 'a')
+      #f.write("%f\n" % test)
+      #sys.exit()
 
     # 3B: Graph code
-    import matplotlib.pyplot as plt
-    from pylab import *
 
     plt.clf()
 
     xs = range(1, 31)
-    ys_nonnoisy = []
+    nonnoisy_results = open('nonnoisy_boosting_results.txt', 'r')
+    noisy_results = open('noisy_boosting_results.txt', 'r')
+    ys_nonnoisy = [float(line) for line in nonnoisy_results]
+    ys_noisy = [float(line) for line in noisy_results]
+
+    p1, = plt.plot(xs, ys_nonnoisy, color='b', label="Non-noisy Data")
+    p2, = plt.plot(xs, ys_noisy, color='r', label="Noisy Data")
+    plt.title('Test performance across different numbers of boosting rounds')
+    plt.xlabel('Boosting rounds')
+    plt.ylabel('Test performance')
+    plt.axis([0, 30, 0.7, 1])
+    plt.legend()
+    savefig('graph3b.pdf')
+    plt.show()
     # I'm sleepy, gonna finish this tomorrow <3
 
 
-    
+
 main()
 
 
