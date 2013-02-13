@@ -263,15 +263,21 @@ def main():
       train_accuracies, test_accuracies = [], []
       xs = range(1,81)
       for i in xs:
-        print i
         train, test = K_fold_cross_validate(DataSet(data), 10, i)
         train_accuracies.append(train)
         test_accuracies.append(test)
-      plt.plot(xs, train_accuracies, '-r', xs, test_accuracies, '-b')
+
+      Globals.pruneFlag = False
+      train, test = K_fold_cross_validate(DataSet(data), 10)
+      np_train_acc = [train for i in range(len(train_accuracies))]
+      np_test_acc = [test for i in range(len(test_accuracies))]
+      fig_2b = plt.figure()
+      plt.plot(xs, train_accuracies, '-r', xs, np_train_acc, '-r', xs, test_accuracies, '-b', xs, np_test_acc, '--b')
       plt.xlabel('Validation set size')
       plt.ylabel('10 fold cross-validation accuracy')
-      plt.legend(['Train accuracy', 'Test accuracy'])
+      plt.legend(['Training performance', 'Non pruning train performance','Test performance', 'Non pruning test performance'])
       plt.title('Plot of test and training performance for validation set pruning of size [1,80]')
+      fig_2b.savefig('2bi_data.eps', dpi=600)
       plt.show()
     else:
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
