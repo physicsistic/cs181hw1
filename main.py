@@ -31,7 +31,7 @@ def classify(decisionTree, example):
 # 3. AdaBoost
 # implements majority voting for a weighted set of predictions
 def classify_weighted_set(decisionTrees, example):
-    weights = [0, 0]
+    weights = [0., 0.]
     for dt in decisionTrees:
         classification = dt.predict(example)
         # the rest of this is bad but yolo
@@ -279,7 +279,7 @@ def main():
       print "Test accuracy: %f" % test
       #f = open('noisy_boosting_results.txt', 'a')
       #f.write("%f\n" % test)
-      #sys.exit()
+      sys.exit()
 
     # 3B: Graph code
 
