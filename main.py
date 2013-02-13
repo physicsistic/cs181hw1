@@ -4,7 +4,11 @@
 
 from dtree import *
 import sys
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+from pylab import *
 
 class Globals:
     noisyFlag = False
@@ -28,12 +32,10 @@ def classify(decisionTree, example):
 # implements majority voting for a weighted set of predictions
 def classify_weighted_set(decisionTrees, example):
     weights = [0, 0]
-    print "\n\n"
     for dt in decisionTrees:
         classification = dt.predict(example)
         # the rest of this is bad but yolo
         weights[classification] += dt.weight
-    print weights
     if weights[0] > weights[1]:
         return 0
     else:
@@ -76,7 +78,6 @@ def ada_boost(dataset, rounds, max_depth):
         if error == 0:
             dt.weight = sys.maxint
             hypotheses.append(dt)
-            print "perfect tree"
             return hypotheses
         else:
             dt.weight = 0.5 * math.log((1 - error) / error)
@@ -166,11 +167,8 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
       dataset.examples = train
       dt = prune(learn(dataset), train, validate)
     elif dataset.use_boosting:
-      print dataset.use_boosting
       dataset.examples = training_examples
-      print len(dataset.examples)
       dt = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
-      print dt
     else:
       dataset.examples = training_examples
       dt = learn(dataset)
@@ -260,7 +258,7 @@ def main():
       dataset.use_boosting = True
       dataset.num_rounds = boostRounds
       Globals.boostingFlag = True
-    
+
     if Globals.autoPruneFlag:
       train_accuracies, test_accuracies = [], []
       xs = range(1,81)
@@ -285,9 +283,33 @@ def main():
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
       print "Train accuracy: %f" % train
       print "Test accuracy: %f" % test
+      #f = open('noisy_boosting_results.txt', 'a')
+      #f.write("%f\n" % test)
+      #sys.exit()
+
+    # 3B: Graph code
+
+    plt.clf()
+
+    xs = range(1, 31)
+    nonnoisy_results = open('nonnoisy_boosting_results.txt', 'r')
+    noisy_results = open('noisy_boosting_results.txt', 'r')
+    ys_nonnoisy = [float(line) for line in nonnoisy_results]
+    ys_noisy = [float(line) for line in noisy_results]
+
+    p1, = plt.plot(xs, ys_nonnoisy, color='b', label="Non-noisy Data")
+    p2, = plt.plot(xs, ys_noisy, color='r', label="Noisy Data")
+    plt.title('Test performance across different numbers of boosting rounds')
+    plt.xlabel('Boosting rounds')
+    plt.ylabel('Test performance')
+    plt.axis([0, 30, 0.7, 1])
+    plt.legend()
+    savefig('graph3b.pdf')
+    plt.show()
+    # I'm sleepy, gonna finish this tomorrow <3
 
 
-    
+
 main()
 
 

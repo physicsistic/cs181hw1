@@ -10,3 +10,25 @@ In progress
 
 Problem 3a
 ==========
+Non-noisy data:
+10 rounds, max_depth = 1: 0.89
+30 rounds, max_depth = 1: 0.91
+10 rounds, max_depth = 2: 0.90
+30 rounds, max_depth = 2: 0.90
+Noisy data:
+10 rounds, max_depth = 1: 0.88
+30 rounds, max_depth = 1: 0.87
+10 rounds, max_depth = 2: 0.78
+30 rounds, max_depth = 2: 0.78
+
+Problem 3b
+=========
+See graph3b.pdf
+
+Results improve slightly, but not dramatically, with additonal boosting rounds. However, from round to round, results sometimes worsen. Results are more varied across number of rounds for the non-noisy data.
+
+Problem 3c
+==========
+ID3 without pruning: 0.87
+ID3 with pruning: ?
+Boosting (30 rounds, max_depth = 1): 0.91
