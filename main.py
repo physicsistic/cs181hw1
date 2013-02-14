@@ -177,11 +177,25 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
     elif dataset.use_boosting:
       dataset.examples = training_examples
       dt = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
+
     else:
       dataset.examples = training_examples
       dt = learn(dataset)
     # run prediction over the test set of examples
     examples = all_examples[i*L:N+i*L]
+    if dataset.use_boosting:
+      # Part 4 code
+      for tree in dt:
+        predictions = [tree.predict(example) for example in examples]
+        targets = [example.attrs[dataset.target] for example in examples]
+        test_perf = accuracy(predictions[n_tset:], targets[n_tset:])
+        train_perf = accuracy(predictions[:n_tset], targets[:n_tset])
+        if test_perf > 0.9 and train_perf > 0.93:
+            print "\n"
+            print "test accuracy: " + str(test_perf)
+            print "train accuracy: " + str(train_perf)
+            tree.display()
+
     predictions = [classify(dt, example) for example in examples]
     targets = [example.attrs[dataset.target] for example in examples]
 
@@ -285,7 +299,7 @@ def main():
       plt.ylabel('10 fold cross-validation accuracy')
       plt.legend(['Training performance', 'Non pruning train performance','Test performance', 'Non pruning test performance'])
       plt.title('Plot of test and training performance for validation set pruning of size [1,80]')
-      fig_2b.savefig('2bi_data.eps', dpi=600)
+      #fig_2b.savefig('2bi_data.eps', dpi=600)
       plt.show()
     else:
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)

@@ -1,0 +1,6 @@
+graph part4_tree {
+    2 [shape=box];
+    7 [shape=box];
+    4 [shape=box];
+    0 [shape=box];
+}
