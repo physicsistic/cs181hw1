@@ -24,4 +24,9 @@
 
 \section{Boosting}
 
+\subsection{Information Gain Criterion using weights}
+In order to take into account weights when calculating the information gain of a given attribute, we use the following formula to calculate the entropy of the labels:
+$$H(\text{labels}=\sum_{c=1}^{C}\frac{W_c}{W}\log_2\frac{W}{W_c}$$
+Where $$W_c = \sum_{n=1}^{N}I(y_n=c)w_n$$ and $$W=\sum_{n=1}^{N}w_n$$
+
 \end{document}

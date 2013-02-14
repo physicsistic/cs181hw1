@@ -69,10 +69,15 @@ def ada_boost(dataset, rounds, max_depth):
         dt = weak_learn(dataset, max_depth)
         error = 0.
         weight_sum = 0.
+        num_correct = 0.
+        weight_correct = 0.
         # build error from incorrect examples
         for e in dataset.examples:
             if dt.predict(e) != e.attrs[-1]:
                 error += e.weight
+            else:
+                num_correct += 1
+                weight_correct += e.weight
 
         # calculate hypothesis weight
         if error == 0:
@@ -82,8 +87,10 @@ def ada_boost(dataset, rounds, max_depth):
         else:
             dt.weight = 0.5 * math.log((1 - error) / error)
 
+        old_sum = 0.
         # decrease weight of correct examples
         for e in dataset.examples:
+            old_sum += e.weight
             if dt.predict(e) == e.attrs[-1]:
                 #textbook psuedocode: e.weight *= error / (1 - error)
                 e.weight *= math.exp(-1. * dt.weight)
@@ -95,6 +102,7 @@ def ada_boost(dataset, rounds, max_depth):
         for e in dataset.examples:
             e.weight = 0 if weight_sum == 0 else e.weight/weight_sum
         hypotheses.append(dt)
+
 
     return hypotheses
 
@@ -283,17 +291,17 @@ def main():
       train, test = K_fold_cross_validate(dataset, 10, Globals.valSetSize)
       print "Train accuracy: %f" % train
       print "Test accuracy: %f" % test
-      #f = open('noisy_boosting_results.txt', 'a')
+      #f = open('noisy_boosting_results2.txt', 'a')
       #f.write("%f\n" % test)
-      sys.exit()
+      #sys.exit()
 
     # 3B: Graph code
 
     plt.clf()
 
     xs = range(1, 31)
-    nonnoisy_results = open('nonnoisy_boosting_results.txt', 'r')
-    noisy_results = open('noisy_boosting_results.txt', 'r')
+    nonnoisy_results = open('nonnoisy_boosting_results2.txt', 'r')
+    noisy_results = open('noisy_boosting_results2.txt', 'r')
     ys_nonnoisy = [float(line) for line in nonnoisy_results]
     ys_noisy = [float(line) for line in noisy_results]
 
@@ -304,9 +312,8 @@ def main():
     plt.ylabel('Test performance')
     plt.axis([0, 30, 0.7, 1])
     plt.legend()
-    savefig('graph3b.pdf')
+    savefig('graph3b.eps')
     plt.show()
-    # I'm sleepy, gonna finish this tomorrow <3
 
 
 

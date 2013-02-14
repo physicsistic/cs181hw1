@@ -426,8 +426,10 @@ class DecisionTreeLearner(Learner):
             #for v in self.dataset.values[target]:
             #    weights.append(sum_weights(target, v, examples))
             weights = [self.sum_weights(target, v, examples) for v in self.dataset.values[target]]
-            return information_content_weighted([self.count(target, v, examples)
-                                        for v in self.dataset.values[target]], weights)
+            total_weight = 0.
+            for e in examples:
+                total_weight += e.weight
+            return information_content_weighted(weights, total_weight)
         N = float(len(examples))
         remainder = 0
         for (v, examples_i) in self.split_by(attr, examples):
@@ -450,12 +452,8 @@ def information_content(values):
     return sum([- v * log2(v) for v in values])
 
 # 3. AdaBoost
-def information_content_weighted(values, weights):
+def information_content_weighted(weights, total_weight):
     "Number of bits to represent the probability distribution in values."
-    # If the values do not sum to 1, normalize them to make them a Prob. Dist.
-    values = removeall(0, values)
-    s = float(sum(values))
-    if s != 1.0: values = [v/s for v in values]
-    # Include the sum of weights matching the given in each product
-    return sum([- v * log2(v) * w for v,w in zip(values, weights)])
+    weights = removeall(0, weights)
+    return sum([(wc / total_weight) * log2(total_weight / wc) for wc in weights])
 #_________________________________________________
