@@ -293,7 +293,7 @@ def main():
       print "Test accuracy: %f" % test
       #f = open('noisy_boosting_results2.txt', 'a')
       #f.write("%f\n" % test)
-      #sys.exit()
+      sys.exit()
 
     # 3B: Graph code
 
