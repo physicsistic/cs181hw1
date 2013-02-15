@@ -56,4 +56,12 @@ Without pruning, ID3 gives a cross-validated test performance of 0.87 on the non
 \subsection{Test vs. training performance over different numbers of boosting rounds}
 When testing the non-noisy dataset with weak learners of max depth 1, the training accuracy starts off extremely high (0.953333) and increases slightly every several rounds, reaching a steady state at 9 rounds with 0.957778. The testing performance, on the other hand, starts at 0.88 and increases every several rounds at a faster rate than the training performance (although test performance is always worse than training performance). Interestingly, test performance reaches and maintains its maximum at 12 rounds, 3 rounds later than the training performance stopped increasing. This speaks to the remarkable property of AdaBoost that allows it to improve test performance even after training performance has maxed out (again, its resistance to over fitting).
 
+\section{Tree Analysis}
+The following tree was generating using AdaBoost, with a maximum depth of 1 on weak learners and 21 rounds of boosting. We examined the resulting decision trees throughout boosting, and noticed that this dataset was producing particularly robust decision trees, such that each round of boosting changed very little about the structure of the tree, and error was very low from the beginning. Therefore, we extracted the first tree from the set of hypotheses and ran it through our cross validation function (such that the same tree was tested on all ten folds). We found a test performance of 0.95.\\
+\includegraphics[scale=0.75]{tree_pt4_alternate}
+According this tree, the most important attribute when determining benign/malignant decisions is the uniformity of cell shape in the tumor. Lower values of uniformity (less than or equal to 3) lead to 0 labels (indicating a benign tumor), while higher values tend to produce 1 labels (malignant). \\
+
+Because this decision stump encapsulates so little information about the original dataset, we wondered whether a deeper tree would lead to more accurate results. While we were able to reach a test performance of 0.99, the tree itself because exponentially more complex (see below), so we decided to stick with the decision stump. For this deeper tree, however, we can branch on clump thickness and single epithelial cell size. \\
+\includegraphics[scale=0.25]{tree_pt4}
+
 \end{document}

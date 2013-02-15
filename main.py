@@ -166,6 +166,7 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
   test_accuracies, train_accuracies = [], []
 
   all_examples = dataset.examples[:]
+  part4 = False
   for i in range(K):
     training_examples = all_examples[i*L:(K+i-1)*L]
     n_tset = len(training_examples)
@@ -178,24 +179,18 @@ def K_fold_cross_validate(dataset, K, n_vset=None):
       dataset.examples = training_examples
       dt = ada_boost(dataset, dataset.num_rounds, dataset.max_depth)
 
+      #if dataset.num_rounds == 21:
+      #    dt = dt[0]
+      #    dt.display()
+      #    part4 = True
+      #    dataset.use_boosting = False
+      #    Globals.boostingFlag = False
+      #    print "Part 4: Testing on single tree"
     else:
       dataset.examples = training_examples
       dt = learn(dataset)
     # run prediction over the test set of examples
     examples = all_examples[i*L:N+i*L]
-    if dataset.use_boosting:
-      # Part 4 code
-      for tree in dt:
-        predictions = [tree.predict(example) for example in examples]
-        targets = [example.attrs[dataset.target] for example in examples]
-        test_perf = accuracy(predictions[n_tset:], targets[n_tset:])
-        train_perf = accuracy(predictions[:n_tset], targets[:n_tset])
-        if test_perf > 0.9 and train_perf > 0.93:
-            print "\n"
-            print "test accuracy: " + str(test_perf)
-            print "train accuracy: " + str(train_perf)
-            tree.display()
-
     predictions = [classify(dt, example) for example in examples]
     targets = [example.attrs[dataset.target] for example in examples]
 
@@ -307,6 +302,7 @@ def main():
       print "Test accuracy: %f" % test
       #f = open('noisy_boosting_results2.txt', 'a')
       #f.write("%f\n" % test)
+      # prevent graphs from generating each time code is tested
       sys.exit()
 
     # 3B: Graph code

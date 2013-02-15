@@ -1,0 +1,25 @@
+graph tree_pt4 {
+    2 [label="Uniformity of Cell Shape" shape=box];
+    leaf1 [label="0"];
+    leaf2 [label="0"];
+    leaf3 [label="0"];
+    leaf4 [label="1"];
+    leaf5 [label="1"];
+    leaf6 [label="1"];
+    leaf7 [label="1"];
+    leaf8 [label="1"];
+    leaf9 [label="1"];
+    leaf10 [label="1"];
+
+    2 -- leaf1 [label="1"];
+    2 -- leaf2 [label="2"];
+    2 -- leaf3 [label="3"];
+    2 -- leaf4 [label="4"];
+    2 -- leaf5 [label="5"];
+    2 -- leaf6 [label="6"];
+    2 -- leaf7 [label="7"];
+    2 -- leaf8 [label="8"];
+    2 -- leaf9 [label="9"];
+    2 -- leaf10 [label="10"];
+
+}
